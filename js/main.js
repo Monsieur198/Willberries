@@ -37,13 +37,13 @@ modalCart.addEventListener('click', function (event) {
 (function() {
 	const scrollLinks = document.querySelectorAll('a.scroll-link');
 
-	for (let i = 0; i < scrollLinks.length; i++) {
-		scrollLinks[i].addEventListener('click', function(event) {
+	for (let scrollLink of scrollLinks) {
+		scrollLink.addEventListener('click', function(event) {
 			event.preventDefault();
-			const id = scrollLinks[i].getAttribute('href');
+			const id = scrollLink.getAttribute('href');
 			document.querySelector(id).scrollIntoView({
 				behavior: 'smooth',
-				block: 'start'
+				block: 'start',
 			})
 		});
 	}
@@ -53,7 +53,7 @@ modalCart.addEventListener('click', function (event) {
 // goods
 
 const more = document.querySelector('.more');
-const navigationItem = document.querySelectorAll('.navigation-item');
+const navigationLink = document.querySelectorAll('.navigation-link');
 const longGoodsList = document.querySelector('.long-goods-list');
 
 const getGoods = async function () {
@@ -64,20 +64,19 @@ const getGoods = async function () {
 	return await result.json();
 };
 
-const createCard = function (objCard) {
+const createCard = function ({ label, name, img, description, id, price }) {
 	const card = document.createElement('div');
 	card.className = 'col-lg-3 col-sm-6';
 
-	console.log(objCard);
-
 	card.innerHTML = `
 		<div class="goods-card">
-			<span class="label">${objCard.label}</span>
-			<img src="${objCard.img}" alt="image: ${objCard.name}" class="goods-image">
-			<h3 class="goods-title">${objCard.name}</h3>
-			<p class="goods-description">${objCard.description}</p>
-			<button class="button goods-card-btn add-to-cart" data-id="${objCard.id}">
-				<span class="button-price">${objCard.price}</span>
+			${label ?
+				 `<span class="label">${label}</span>` : ``}			
+			<img src="${img}" alt="${name}" class="goods-image">
+			<h3 class="goods-title">${name}</h3>
+			<p class="goods-description">${description}</p>
+			<button class="button goods-card-btn add-to-cart" data-id="${id}">
+				<span class="button-price">${price}</span>
 			</button>
 		</div>
 	`;
@@ -92,4 +91,54 @@ const renderCards = function (data) {
 	document.body.classList.add('show-goods');
 };
 
-getGoods().then(renderCards);
+more.addEventListener('click', function(event) {
+	event.preventDefault();
+	getGoods().then(renderCards);
+	document.body.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start',
+	})
+});
+
+const filterCards = function(field, value) {
+	getGoods()
+		.then(function (data) {
+			const filteredGoods = data.filter(function(good) {
+				return good[field] === value;
+			});
+			return filteredGoods;
+		})
+		.then(renderCards);
+};
+
+navigationLink.forEach(function (link) {
+	link.addEventListener('click', function(event) {
+		event.preventDefault();
+		const field = link.dataset.field;
+		const value = link.textContent;
+		field ? filterCards(field, value) : getGoods().then(renderCards);
+	})
+});
+
+
+// Offer buttons
+
+const offerWindow = document.querySelector('.row.mb-4');
+offerWindow.addEventListener('click', function(event) {
+	let targetParent = event.target.parentElement;
+	if (targetParent.classList.contains('card', 'card-1', 'mb-4')
+		|| targetParent.parentElement.classList.contains('card', 'card-1', 'mb-4')) {
+			filterCards('category', 'Accessories');
+			document.body.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start',
+			})
+	} else if (targetParent.classList.contains('card', 'card-2', 'mb-4')
+		|| targetParent.parentElement.classList.contains('card', 'card-2', 'mb-4')) {
+			filterCards('category', 'Shoes');
+			document.body.scrollIntoView({
+				behavior: 'smooth',
+				block: 'start',
+			})
+	}
+})
