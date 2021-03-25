@@ -14,18 +14,29 @@ const mySwiper = new Swiper('.swiper-container', {
 const buttonCart = document.querySelector('.button-cart');
 const modalCart = document.querySelector('#modal-cart');
 const modalClose = document.querySelector('.modal-close');
+const more = document.querySelector('.more');
+const navigationLink = document.querySelectorAll('.navigation-link');
+const longGoodsList = document.querySelector('.long-goods-list');
 
-const openModal = function () {
+const getGoods = async () => {
+	const result = await fetch('db/db.json');
+	if (!result.ok) {
+		throw 'Ошибочка вышла ' + result.status;
+	}
+	return await result.json();
+};
+
+const openModal = () => {
 	modalCart.classList.add('show');
 };
 
-const closeModal = function () {
+const closeModal = () => {
 	modalCart.classList.remove('show');
 };
 
 buttonCart.addEventListener('click', openModal);
 
-modalCart.addEventListener('click', function (event) {
+modalCart.addEventListener('click', event => {
 	if (event.target === modalCart || event.target === modalClose) {
 		closeModal();
 	}
@@ -38,7 +49,7 @@ modalCart.addEventListener('click', function (event) {
 	const scrollLinks = document.querySelectorAll('a.scroll-link');
 
 	for (let scrollLink of scrollLinks) {
-		scrollLink.addEventListener('click', function(event) {
+		scrollLink.addEventListener('click', event => {
 			event.preventDefault();
 			const id = scrollLink.getAttribute('href');
 			document.querySelector(id).scrollIntoView({
@@ -52,18 +63,6 @@ modalCart.addEventListener('click', function (event) {
 
 // goods
 
-const more = document.querySelector('.more');
-const navigationLink = document.querySelectorAll('.navigation-link');
-const longGoodsList = document.querySelector('.long-goods-list');
-
-const getGoods = async function () {
-	const result = await fetch('db/db.json');
-	if (!result.ok) {
-		throw 'Ошибочка вышла ' + result.status;
-	}
-	return await result.json();
-};
-
 const createCard = function ({ label, name, img, description, id, price }) {
 	const card = document.createElement('div');
 	card.className = 'col-lg-3 col-sm-6';
@@ -76,7 +75,7 @@ const createCard = function ({ label, name, img, description, id, price }) {
 			<h3 class="goods-title">${name}</h3>
 			<p class="goods-description">${description}</p>
 			<button class="button goods-card-btn add-to-cart" data-id="${id}">
-				<span class="button-price">${price}</span>
+				<span class="button-price">$${price}</span>
 			</button>
 		</div>
 	`;
@@ -84,14 +83,14 @@ const createCard = function ({ label, name, img, description, id, price }) {
 	return card;
 };
 
-const renderCards = function (data) {
+const renderCards = function(data) {
 	longGoodsList.textContent = '';
 	const cards = data.map(createCard);
 	longGoodsList.append(...cards);
 	document.body.classList.add('show-goods');
 };
 
-more.addEventListener('click', function(event) {
+more.addEventListener('click', event => {
 	event.preventDefault();
 	getGoods().then(renderCards);
 	document.body.scrollIntoView({
@@ -102,17 +101,12 @@ more.addEventListener('click', function(event) {
 
 const filterCards = function(field, value) {
 	getGoods()
-		.then(function (data) {
-			const filteredGoods = data.filter(function(good) {
-				return good[field] === value;
-			});
-			return filteredGoods;
-		})
+		.then((data) => data.filter(good => good[field] === value))
 		.then(renderCards);
 };
 
 navigationLink.forEach(function (link) {
-	link.addEventListener('click', function(event) {
+	link.addEventListener('click', event => {
 		event.preventDefault();
 		const field = link.dataset.field;
 		const value = link.textContent;
@@ -123,22 +117,20 @@ navigationLink.forEach(function (link) {
 
 // Offer buttons
 
-const offerWindow = document.querySelector('.row.mb-4');
-offerWindow.addEventListener('click', function(event) {
-	let targetParent = event.target.parentElement;
-	if (targetParent.classList.contains('card', 'card-1', 'mb-4')
-		|| targetParent.parentElement.classList.contains('card', 'card-1', 'mb-4')) {
-			filterCards('category', 'Accessories');
-			document.body.scrollIntoView({
-				behavior: 'smooth',
-				block: 'start',
-			})
-	} else if (targetParent.classList.contains('card', 'card-2', 'mb-4')
-		|| targetParent.parentElement.classList.contains('card', 'card-2', 'mb-4')) {
-			filterCards('category', 'Shoes');
-			document.body.scrollIntoView({
-				behavior: 'smooth',
-				block: 'start',
-			})
-	}
-})
+const offerButtons = document.querySelectorAll('.card.mb-4 > .button');
+offerButtons.forEach((offerButton) => {
+	offerButton.addEventListener('click', event => {
+		let targetParent = event.target.parentElement;
+		if (targetParent.classList.contains('card', 'card-1', 'mb-4')
+			|| targetParent.parentElement.classList.contains('card', 'card-1', 'mb-4')) {
+				filterCards('category', 'Accessories');
+		} else if (targetParent.classList.contains('card', 'card-2', 'mb-4')
+			|| targetParent.parentElement.classList.contains('card', 'card-2', 'mb-4')) {
+				filterCards('category', 'Clothing');
+		}
+		document.body.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start',
+		})
+	})
+});
