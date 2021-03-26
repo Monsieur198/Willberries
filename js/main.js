@@ -20,6 +20,7 @@ const longGoodsList = document.querySelector('.long-goods-list');
 const cartTableGoods = document.querySelector('.cart-table__goods');
 const cartTableTotal = document.querySelector('.card-table__total');
 const cartCount = document.querySelector('.cart-count');
+const cartClear = document.querySelector('.cart-clear');
 
 
 
@@ -30,6 +31,9 @@ const getGoods = async () => {
 	}
 	return await result.json();
 };
+
+
+// cart
 
 const cart = {
 	cartGoods: [],
@@ -58,11 +62,12 @@ const cart = {
 
 		cartTableTotal.textContent = totalPrice + '$';
 
-		/* let totalCount = this.cartGoods.reduce((quantity, item) => {
+		let totalCount = this.cartGoods.reduce((quantity, item) => {
+			console.log(item.count);
 			return quantity + item.count;
-		}, 0)
+		})
 
-		totalCount ? cartCount.textContent = totalCount : cartCount.textContent = '';  */
+		totalCount ? cartCount.textContent = totalCount : cartCount.textContent = '';
 	},
 
 	deleteGood(id) {
@@ -111,6 +116,11 @@ const cart = {
 				});
 		}
 	},
+
+	clearCart () {
+		this.cartGoods = [];
+		this.renderCart();
+	}
 }
 
 
@@ -134,6 +144,10 @@ cartTableGoods.addEventListener('click', event => {
 			cart.plusGood(id);
 		}
 	}	
+})
+
+cartClear.addEventListener('click', event => {
+	cart.clearCart();
 })
 
 const openModal = () => {
@@ -230,7 +244,6 @@ navigationLink.forEach(function (link) {
 const offerButtons = document.querySelectorAll('.card.mb-4 > .button');
 offerButtons.forEach((offerButton) => {
 	offerButton.addEventListener('click', event => {
-		// let targetParent = event.target.parentElement;
 		let targetParent = event.target.closest('.card', 'mb-4');
 		if (targetParent.classList.contains('card-1')) {
 				filterCards('category', 'Accessories');
