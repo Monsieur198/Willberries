@@ -35,13 +35,18 @@ const getGoods = async () => {
 // cart
 
 const cart = {
-	cartGoods: [],
+	cartGoods: JSON.parse(localStorage.getItem('cartWilb')) || [],
+
+	updateLocalStorage() {
+		localStorage.setItem('cartWilb', JSON.stringify(this.cartGoods));
+	},
 
 	countQuantity() {
 		const num = this.cartGoods.reduce((sum, item) => {
 			return sum + item.count;	
 		}, 0);
-		cartCount.textContent = (num) ? num : ' ';
+		cartCount.textContent = num ? num : '';
+		this.updateLocalStorage();
 	},
 
 	renderCart(){
@@ -74,7 +79,7 @@ const cart = {
 	deleteGood(id) {
 		this.cartGoods = this.cartGoods.filter(item => id !== item.id);
 		this.renderCart();
-		this.countQuantity();
+		this.countQuantity();		
 	},
 
 	minusGood(id) {
@@ -126,6 +131,7 @@ const cart = {
 	}
 };
 
+cart.countQuantity();
 
 
 
@@ -287,9 +293,9 @@ modalForm.addEventListener('submit', event => {
 				console.error(err);
 			})
 			.finally(() => {
-				cart.clearCart();
 				closeModal();
-				modalForm.reset();	
+				modalForm.reset();
+				cart.clearCart();
 		});
 	} else {
 		alert('Корзина пуста');
