@@ -258,9 +258,40 @@ offerButtons.forEach((offerButton) => {
 	})
 });
 
+// day 4
+
+const modalForm = document.querySelector('.modal-form');
+
 const postData = dataUser => fetch('server.php', {
 	method: 'POST',
 	body: dataUser,
-})
+});
 
-postData('Hello world!');
+modalForm.addEventListener('submit', event => {
+	event.preventDefault();
+
+	if (cart.cartGoods.length > 0) {
+		const formData = new FormData(modalForm);
+		formData.append('order', JSON.stringify(cart.cartGoods));
+
+		postData(formData)
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(response.status);
+				}
+				alert('Ваш заказ успешно отправлен');
+				console.log(response.statusText);
+			})
+			.catch(error => {
+				alert('Ошибка заказа, попробуйте позже');
+				console.error(err);
+			})
+			.finally(() => {
+				cart.clearCart();
+				closeModal();
+				modalForm.reset();	
+		});
+	} else {
+		alert('Корзина пуста');
+	}	
+})
