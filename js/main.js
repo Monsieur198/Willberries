@@ -23,7 +23,6 @@ const cartCount = document.querySelector('.cart-count');
 const cartClear = document.querySelector('.cart-clear');
 
 
-
 const getGoods = async () => {
 	const result = await fetch('db/db.json');
 	if (!result.ok) {
@@ -37,6 +36,14 @@ const getGoods = async () => {
 
 const cart = {
 	cartGoods: [],
+
+	countQuantity() {
+		const num = this.cartGoods.reduce((sum, item) => {
+			return sum + item.count;	
+		}, 0);
+		cartCount.textContent = (num) ? num : ' ';
+	},
+
 	renderCart(){
 		cartTableGoods.textContent = '';
 		this.cartGoods.forEach(({ id, name, price, count }) => {
@@ -62,31 +69,24 @@ const cart = {
 
 		cartTableTotal.textContent = totalPrice + '$';
 
-		let totalCount = this.cartGoods.reduce((quantity, item) => {
-			console.log(item.count);
-			return quantity + item.count;
-		})
-
-		totalCount ? cartCount.textContent = totalCount : cartCount.textContent = '';
 	},
 
 	deleteGood(id) {
 		this.cartGoods = this.cartGoods.filter(item => id !== item.id);
 		this.renderCart();
+		this.countQuantity();
 	},
 
 	minusGood(id) {
 		for (item of this.cartGoods) {
 			if (item.id === id) {
-				if (item.count <= 1) {
-					this.deleteGood(id);
-				} else {
-					item.count--;
-				}				
+				item.count--
+				if (!item.count) this.deleteGood(id);
 				break;
 			}
 		}
 		this.renderCart();
+		this.countQuantity();
 	},
 
 	plusGood(id) {
@@ -97,6 +97,7 @@ const cart = {
 			}
 		}
 		this.renderCart();
+		this.countQuantity();
 	},
 
 	addCartGoods(id) {
@@ -113,15 +114,19 @@ const cart = {
 						price,
 						count: 1
 					});
+					this.countQuantity();
 				});
-		}
+		}	
 	},
 
 	clearCart () {
-		this.cartGoods = [];
+		this.cartGoods.length = 0;
 		this.renderCart();
+		this.countQuantity();
 	}
-}
+};
+
+
 
 
 document.body.addEventListener('click', event => {
@@ -146,9 +151,7 @@ cartTableGoods.addEventListener('click', event => {
 	}	
 })
 
-cartClear.addEventListener('click', event => {
-	cart.clearCart();
-})
+cartClear.addEventListener('click', cart.clearCart)
 
 const openModal = () => {
 	cart.renderCart();
@@ -169,6 +172,13 @@ modalCart.addEventListener('click', event => {
 
 //  scrollSmooth
 
+const scrollTo = (place) => {
+	place.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start',
+	})
+};
+
 (function() {
 	const scrollLinks = document.querySelectorAll('a.scroll-link');
 
@@ -176,10 +186,7 @@ modalCart.addEventListener('click', event => {
 		scrollLink.addEventListener('click', event => {
 			event.preventDefault();
 			const id = scrollLink.getAttribute('href');
-			document.querySelector(id).scrollIntoView({
-				behavior: 'smooth',
-				block: 'start',
-			})
+			scrollTo(document.querySelector(id));
 		});
 	}
 })()
@@ -217,10 +224,7 @@ const renderCards = function(data) {
 more.addEventListener('click', event => {
 	event.preventDefault();
 	getGoods().then(renderCards);
-	document.body.scrollIntoView({
-		behavior: 'smooth',
-		block: 'start',
-	})
+	scrollTo(document.body);
 });
 
 const filterCards = function(field, value) {
@@ -250,9 +254,13 @@ offerButtons.forEach((offerButton) => {
 		} else if (targetParent.classList.contains('card-2')) {
 				filterCards('category', 'Clothing');
 		}
-		document.body.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start',
-		})
+		scrollTo(document.body);
 	})
 });
+
+const postData = dataUser => fetch('server.php', {
+	method: 'POST',
+	body: dataUser,
+})
+
+postData('Hello world!');
